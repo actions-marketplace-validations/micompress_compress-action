@@ -1,0 +1,57 @@
+name: test
+
+# Proves the action works on a real runner, not just in local simulation.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compress the sample image
+        id: run
+        uses: ./
+        with:
+          files: test/sample.png
+          output-dir: out
+          preset: recommended
+
+      - name: Assert the outputs are sane
+        run: |
+          set -eu
+          echo "compressed=${{ steps.run.outputs.files-compressed }}"
+          echo "failed=${{ steps.run.outputs.files-failed }}"
+          echo "saved=${{ steps.run.outputs.percent-saved }}%"
+
+          test "${{ steps.run.outputs.files-compressed }}" = "1"
+          test "${{ steps.run.outputs.files-failed }}" = "0"
+          test -f out/sample.png
+
+          # The result must be a real PNG and smaller than the input.
+          file out/sample.png | grep -q 'PNG image data'
+          before=$(stat -c%s test/sample.png)
+          after=$(stat -c%s out/sample.png)
+          echo "$before -> $after bytes"
+          test "$after" -lt "$before"
+
+      - name: Unsupported input fails the step by default
+        run: |
+          set -eu
+          echo hello > bad.xyz
+          if INPUT_FILES=bad.xyz node src/index.js; then
+            echo "expected a non-zero exit for an unsupported file"; exit 1
+          fi
+          echo "ok — unsupported input exits non-zero"
+
+      - name: fail-on-error=false downgrades it to a warning
+        run: |
+          set -eu
+          # `VAR-NAME=x cmd` is not valid shell syntax, and the runner really does
+          # export inputs with hyphens intact — so set it through `env`.
+          env INPUT_FILES=bad.xyz 'INPUT_FAIL-ON-ERROR=false' node src/index.js
+          echo "ok — exits zero when fail-on-error is false"
