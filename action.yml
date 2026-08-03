@@ -1,0 +1,47 @@
+name: 'MiCompress'
+description: 'Compress images, PDFs, video, audio, documents & archives in CI — powered by micompress.com'
+author: 'MiCompress'
+
+branding:
+  icon: 'minimize-2'
+  color: 'blue'
+
+inputs:
+  files:
+    description: 'Newline- or comma-separated list of files to compress. Shell globs are expanded by the runner, so `assets/*.png` works.'
+    required: true
+  preset:
+    description: 'lossless | recommended (default) | extreme'
+    required: false
+    default: 'recommended'
+  max-width:
+    description: 'Resize images down to this maximum width in pixels'
+    required: false
+  output-dir:
+    description: 'Write results here instead of overwriting the input files'
+    required: false
+  token:
+    description: 'MiCompress access token for higher size limits. Store it as a repository secret.'
+    required: false
+  fail-on-error:
+    description: 'Fail the step if any file could not be compressed'
+    required: false
+    default: 'true'
+  api:
+    description: 'Override the API base URL'
+    required: false
+    default: 'https://micompress.com'
+
+outputs:
+  files-compressed:
+    description: 'Number of files compressed successfully'
+  files-failed:
+    description: 'Number of files that could not be compressed'
+  bytes-saved:
+    description: 'Total bytes saved across all files'
+  percent-saved:
+    description: 'Overall size reduction, as a whole-number percentage'
+
+runs:
+  using: 'node20'
+  main: 'src/index.js'
