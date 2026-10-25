@@ -82,10 +82,13 @@ async function main() {
   }
 
   const outputDir = getInput('output-dir', null);
+  const apiKey = getInput('api-key', process.env.MICOMPRESS_API_KEY || null);
   const token = getInput('token', null);
   const failOnError = getBooleanInput('fail-on-error', true);
   const baseUrl = getInput('api', DEFAULT_BASE);
 
+  // Secrets are masked by the runner already; this also covers a key passed in plain text.
+  if (apiKey) process.stdout.write(`::add-mask::${apiKey}\n`);
   if (outputDir) fs.mkdirSync(outputDir, { recursive: true });
 
   const rows = [];
@@ -95,7 +98,7 @@ async function main() {
 
   for (const file of files) {
     try {
-      const { buffer, meta } = await compressFile(file, { preset, maxWidth, token, baseUrl });
+      const { buffer, meta } = await compressFile(file, { preset, maxWidth, apiKey, token, baseUrl });
       const dest = outputDir ? path.join(outputDir, path.basename(file)) : file;
       fs.writeFileSync(dest, buffer);
       totalIn += meta.inputSize || 0;
