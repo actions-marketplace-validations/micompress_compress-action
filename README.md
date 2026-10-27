@@ -7,7 +7,7 @@ No native binaries, no toolchain to install, no dependencies — the action uplo
 each file to the MiCompress engine over HTTPS and writes the optimized result back.
 
 ```yaml
-- uses: micompress/compress-action@v0.1.0
+- uses: micompress/compress-action@v0.1.1
   with:
     files: |
       assets/hero.png
@@ -43,7 +43,7 @@ jobs:
           echo "$FILES"      >> "$GITHUB_OUTPUT"
           echo "EOF"         >> "$GITHUB_OUTPUT"
 
-      - uses: micompress/compress-action@v0.1.0
+      - uses: micompress/compress-action@v0.1.1
         if: steps.changed.outputs.files != ''
         id: micompress
         with:
@@ -67,9 +67,32 @@ jobs:
 | `preset` | `recommended` | `lossless` · `recommended` · `extreme` |
 | `max-width` | — | Resize images down to this width in pixels |
 | `output-dir` | — | Write results here instead of overwriting the inputs |
-| `token` | — | MiCompress access token for higher size limits — store it as a repository secret |
+| `api-key` | — | Personal API key from [micompress.com/account](https://micompress.com/account) — store it as a repository secret (see below) |
+| `token` | — | Legacy login token — prefer `api-key` |
 | `fail-on-error` | `true` | Fail the step if any file could not be compressed |
 | `api` | `https://micompress.com` | Override the API base URL |
+
+## API key
+
+Anonymous use works without a key, within per-type size limits. For bigger files:
+
+1. Sign in (free) at **https://micompress.com/account** and copy your key (`mc_…`).
+2. Add it as a repository secret named `MICOMPRESS_API_KEY`
+   (*Settings → Secrets and variables → Actions*).
+3. Pass it to the action:
+
+```yaml
+- uses: micompress/compress-action@v0.1.1
+  with:
+    files: assets/hero.png
+    api-key: ${{ secrets.MICOMPRESS_API_KEY }}
+```
+
+With a key, files up to **100 MB** are accepted. A free account includes **50
+compressions/month** through the API; Plus ($9.99/mo) includes 1,000/month and Pro
+($19.99/mo) 5,000/month, shared with website usage. When the allowance runs out the
+file fails with `API_QUOTA_REACHED` (free) or `USAGE_LIMIT_REACHED` (paid) — see
+**https://micompress.com/plans**.
 
 ## Outputs
 
@@ -88,7 +111,7 @@ The action also writes a result table to the job summary.
   than an entire `assets/` tree on every build — that keeps CI fast and stays well
   inside the service's fair-use limits.
 - Anonymous use works within per-type size limits (images 20MB, video 50MB, …).
-  For larger files pass `token`.
+  For larger files pass `api-key`.
 - Supported formats: **https://micompress.com/all-tools**
 
 ## License

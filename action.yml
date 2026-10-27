@@ -20,8 +20,11 @@ inputs:
   output-dir:
     description: 'Write results here instead of overwriting the input files'
     required: false
+  api-key:
+    description: 'Personal API key from micompress.com/account for bigger files and a monthly allowance. Store it as a repository secret (e.g. MICOMPRESS_API_KEY) and pass it via the secrets context.'
+    required: false
   token:
-    description: 'MiCompress access token for higher size limits. Store it as a repository secret.'
+    description: 'Legacy login token (prefer api-key). Store it as a repository secret.'
     required: false
   fail-on-error:
     description: 'Fail the step if any file could not be compressed'
